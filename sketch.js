@@ -20,10 +20,7 @@ function preload() {
 
 let b = 0;
 let timer;
-
-let yell, blu;
-let yell2, blu2;
-let star2;
+let yell, blu, yell2, blu2, original;
 function setup() {
     timer = millis();
     createCanvas(1000, 1000);
@@ -33,16 +30,15 @@ function setup() {
     blu = createImage(width, height);
     yell2 = createImage(width, height)
     blu2 = createImage(width, height);
-    star2 = createImage(width, height);
+    original = createImage(width, height);
     
     motion(paper);
-        stamp(walk, yell, blu);
-        stamp(kite, yell2, blu2);
-    motion(house);
     motion(swirl);
-
+    motion(upside);
+    stamp(walk, yell, blu);
+    stamp(kite, yell2, blu2);
+    
     image(stars, 0, 0);
-        block(swirl);
     image(swirl, 0, 0);
     image(astro, 0, 0);
     image(tv, 0, 0);
@@ -50,6 +46,7 @@ function setup() {
     image(walk, 0, 0);
     image(type, 0, 0);
     image(paper, 0, 0);
+    image(bird, 0, 0);
     image(water, 0, 0);
     image(house, 0, 0);
     image(kite, 0, 0);
@@ -57,10 +54,11 @@ function setup() {
     image(blu, -10, 0);
     image(yell2, 10, 0);
     image(blu2, -10, 0);
-    
+
     vid = createCapture(VIDEO);
     vid.size(320, 240);
     vid.hide();
+    storeOG(original);
     
 }
 
@@ -68,13 +66,25 @@ let birdpos = [];
 let store = false;
 let hoverbird;
 function draw() {
-    wnoise(stars);
-    image(star2, 0, 0);
-    //background(0);
+    background(0);
+    b = map(mouseX, 0, width, 0, 60);
+    
+    //images
+    image(stars, 0, 0);
+        wnoise(stars);
+    image(swirl, 0, 0);
+        block(swirl);
+        wnoise(swirl);
+    image(astro, 0, 0);
+    if((millis() - timer) > 6000) {
+        fill(60);
+        text("hi :)", 490, 750)
+        text("you got a message:", 450, 770)
+        text("have a nice day!", 455, 790)
+    }
     image(vid, 430, 710, 320 * 0.50, 240 * 0.50);
         screen(vid, 25);
     image(tv, 0, 0);
-    
     image(upside, 0, 0);
     image(walk, 0, 0);
     image(type, 0, 0);
@@ -83,40 +93,15 @@ function draw() {
         rainbow(bird);
     image(water, 0, 0);
     image(house, 0, 0);
+        wnoise(house);
     image(kite, 0, 0);
-//    
-//    image(yell, 10, 0);
-//    image(blu, -10, 0);
-//    pixelate();
     
-}
-
-function pixelate() {
+    image(yell, 10, 0);
+    image(blu, -10, 0);
+    image(yell2, 10, 0);
+    image(blu2, -10, 0);
+    image(original, 0, 0);
     
-}
-
-function mousePressed () {
-    loadPixels();
-    
-   for (var y = 0; y < img.height; y++) {
-            for (var x = 0; x < img.width; x++) {
-                var index = (x + y * img.width)*4;
-        
-                let r = img.pixels[index+0];
-                let g = img.pixels[index+1];
-                let b = img.pixels[index+2]; 
-                let a = img.pixels[index+3];  
-            
-                let avg = (r + g + b) / 3;
-                img.pixels[index+0] = avg;
-                img.pixels[index+1] = avg;
-                img.pixels[index+2] = avg;
-                
-
-        }
-      }
-  
-    updatePixels();
 }
 
 function screen(img, shade) {
@@ -141,19 +126,14 @@ function screen(img, shade) {
                 if(avg < shade) {
                     img.pixels[index+0] += 50;
                 }
-
-//                img.pixels[index+0] = avg + 30;
-//                img.pixels[index+1] = avg + 30;
-//                img.pixels[index+2] = avg + 30;
         }
       }
       img.updatePixels(); 
 }
 let starsloc = [];
 function wnoise(img) {
-    star2.loadPixels();
     img.loadPixels();
-        for (var y = 0; y < img.height/2; y++) {
+        for (var y = 0; y < img.height; y++) {
             for (var x = 0; x < img.width; x++) {
                 var index = (x + y * img.width)*4;
             
@@ -164,28 +144,14 @@ function wnoise(img) {
 
                 if(r > 100 && g > 100 && b > 100) {
                     let r = random(120, 255);
-                    r = r-5;
-                    g = r-5;
-                    b = r;
+                    img.pixels[index+0] = r-5;
+                    img.pixels[index+1] = r-5;
+                    img.pixels[index+2] = r;
                 } 
-                else {
-                    a = 0;
-                }
-                
-                let c = color(r,g,b,a);
-                star2.set(x, y, c);
-                
-//                if(r > 100 && g > 100 && b > 100) {
-//                    let r = random(120, 255);
-//                    img.pixels[index+0] = r-5;
-//                    img.pixels[index+1] = r-5;
-//                    img.pixels[index+2] = r;
-//                } 
                 
         }
       }
-    star2.updatePixels();
-    img.updatePixels();
+      img.updatePixels();
 }
 
 //mask
@@ -251,9 +217,9 @@ function motionBlur(img, x, y) {
     img.pixels[trueIndex + 1] = avgG;
     img.pixels[trueIndex + 2] = avgB;
 }
-function stamp(img, one, two) {
-    one.loadPixels();
-    two.loadPixels();
+function stamp(img, yell, blu) {
+    yell.loadPixels();
+    blu.loadPixels();
     img.loadPixels();
         for (var y = 0; y < img.height; y++) {
             for (var x = 0; x < img.width; x++) {
@@ -273,18 +239,18 @@ function stamp(img, one, two) {
                     a = a * 0.5;
                 }
                 let c = color(r,g,b,a);
-                one.set(x, y, c);
+                yell.set(x, y, c);
                 
                 r = r-255;
                 g = g-255;
                 r = r/2;
                 g = g/2;
                 c = color(r,g,b,a);
-                two.set(x, y, c);
+                blu.set(x, y, c);
         }
       }
-    one.updatePixels();
-    two.updatePixels();
+    yell.updatePixels();
+    blu.updatePixels();
 }
 
 function rainbow(img) {
@@ -305,57 +271,75 @@ function rainbow(img) {
                 if(b > 70 && b < 200 && r < 140 && g < 140)
                     img.pixels[index+2] += 5;
                 
-//                if(index == mouse && a > 230) {
-//                    print('tru');
-//                    fadeBird(img);
-//                    //hoverbird == true
-//                    
-//                }
-//                else {
-//                    colorBird(img);
-//                }
             }
       }
     img.updatePixels();
 }
 
-//function colorBird(img) {
-//     img.loadPixels();
-//        for (var y = 0; y < img.height; y++) {
-//            for (var x = 0; x < img.width; x++) {
-//                var index = (x + y * img.width)*4;
-//
-//                let r = img.pixels[index+0];
-//                let g = img.pixels[index+1];
-//                let b = img.pixels[index+2];
-//                let a = img.pixels[index+3];
-//
-//                if(r > 70 && r < 200 && g < 140 && b < 140)
-//                    img.pixels[index+0] += 5;
-//                if(b > 70 && b < 200 && r < 140 && g < 140)
-//                    img.pixels[index+2] += 5;
-//            }
-//        }
-//
-//    img.updatePixels();
-//}
-//function fadeBird(img) {
-//     img.loadPixels();
-//        for (var y = 0; y < img.height; y++) {
-//            for (var x = 0; x < img.width; x++) {
-//                var index = (x + y * img.width)*4;
-//
-//                let r = img.pixels[index+0];
-//                let g = img.pixels[index+1];
-//                let b = img.pixels[index+2];
-//                let a = img.pixels[index+3];
-//
-//                if(r > 70 && r < 200 && g < 140 && b < 140)
-//                    img.pixels[index+0] -= 5;
-//                if(b > 70 && b < 200 && r < 140 && g < 140)
-//                    img.pixels[index+2] -= 5;
-//            }
-//        }
-//
-//    img.updatePixels();
-//}
+function storeOG(img) {
+    img.loadPixels();
+    loadPixels();
+        for (var y = 0; y < img.height; y++) {
+            for (var x = 0; x < img.width; x++) {
+                var index = (x + y * img.width)*4;
+        
+                let r = pixels[index+0];
+                let g = pixels[index+1];
+                let b = pixels[index+2]; 
+                let a = pixels[index+3];  
+                a = 0;
+                let c = color(r,g,b,a);
+                img.set(x, y, c);
+        }
+      }
+    img.updatePixels();
+}
+
+
+function mouseDragged () {
+    original.loadPixels();
+    loadPixels();
+    let allr = 0;
+    let allg = 0;
+    let allb = 0;
+    let count = 0;
+   for (var y = mouseY - 25; y < mouseY + 25; y++) {
+            for (var x = mouseX - 25; x < mouseX + 25; x++) {
+                var index = (x + y * original.width)*4;
+        
+                let r = pixels[index+0];
+                let g = pixels[index+1];
+                let b = pixels[index+2]; 
+                let a = pixels[index+3];  
+            
+                allr += r;
+                allg += g;
+                allb += b;
+                count++;
+                
+                
+                if(y == mouseY + 24 && x == mouseX + 24) {
+                    r = allr/count;
+                    g = allg/count;
+                    b = allb/count;
+                       for (var y = mouseY - 25; y < mouseY + 25; y++) {
+                        for (var x = mouseX - 25; x < mouseX + 25; x++) {
+                            let c = color(r,g,b,a);
+                            original.set(x, y, c);
+                        }
+                       }
+                }
+                //original.pixels[index+3] = 255;
+//                let avg = (r + g + b) / 3;
+//                original.pixels[index+0] = avg;
+//                original.pixels[index+1] = avg;
+//                original.pixels[index+2] = avg;
+                
+
+        }
+      }
+  
+    original.updatePixels();
+}
+
+
