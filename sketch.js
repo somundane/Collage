@@ -21,6 +21,7 @@ function preload() {
 let b = 0;
 let timer;
 let yell, blu, yell2, blu2, original;
+let clear;
 function setup() {
     timer = millis();
     createCanvas(1000, 1000);
@@ -58,7 +59,7 @@ function setup() {
     vid = createCapture(VIDEO);
     vid.size(320, 240);
     vid.hide();
-    storeOG(original);
+//    storeOG(original);
     
 }
 
@@ -275,27 +276,6 @@ function rainbow(img) {
       }
     img.updatePixels();
 }
-
-function storeOG(img) {
-    img.loadPixels();
-    loadPixels();
-        for (var y = 0; y < img.height; y++) {
-            for (var x = 0; x < img.width; x++) {
-                var index = (x + y * img.width)*4;
-        
-                let r = pixels[index+0];
-                let g = pixels[index+1];
-                let b = pixels[index+2]; 
-                let a = pixels[index+3];  
-                a = 0;
-                let c = color(r,g,b,a);
-                img.set(x, y, c);
-        }
-      }
-    img.updatePixels();
-}
-
-
 function mouseDragged () {
     original.loadPixels();
     loadPixels();
@@ -329,13 +309,6 @@ function mouseDragged () {
                         }
                        }
                 }
-                //original.pixels[index+3] = 255;
-//                let avg = (r + g + b) / 3;
-//                original.pixels[index+0] = avg;
-//                original.pixels[index+1] = avg;
-//                original.pixels[index+2] = avg;
-                
-
         }
       }
   
