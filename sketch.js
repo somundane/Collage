@@ -20,25 +20,30 @@ function preload() {
 
 let b = 0;
 let timer;
-let yell, blu, yell2, blu2, original;
+let yell, blu, yell2, blu2, original, pixelate;
 let clear;
 function setup() {
     timer = millis();
     createCanvas(1000, 1000);
     pixelDensity(1);
     
+    //images created
     yell = createImage(width, height)
     blu = createImage(width, height);
     yell2 = createImage(width, height)
     blu2 = createImage(width, height);
+    pixelate = createImage(width, height);
     original = createImage(width, height);
     
+    //(covered by drawn but used in pixelation)
+    //setup filters 
     motion(paper);
     motion(swirl);
     motion(upside);
     stamp(walk, yell, blu);
     stamp(kite, yell2, blu2);
     
+    //setup images 
     image(stars, 0, 0);
     image(swirl, 0, 0);
     image(astro, 0, 0);
@@ -59,24 +64,21 @@ function setup() {
     vid = createCapture(VIDEO);
     vid.size(320, 240);
     vid.hide();
-//    storeOG(original);
     
 }
 
-let birdpos = [];
-let store = false;
-let hoverbird;
 function draw() {
     background(0);
     b = map(mouseX, 0, width, 0, 60);
     
-    //images
+    //images; filters are indented
     image(stars, 0, 0);
         wnoise(stars);
     image(swirl, 0, 0);
         block(swirl);
         wnoise(swirl);
     image(astro, 0, 0);
+    //delay load of "hidden" message
     if((millis() - timer) > 6000) {
         fill(60);
         text("hi :)", 490, 750)
@@ -96,15 +98,14 @@ function draw() {
     image(house, 0, 0);
         wnoise(house);
     image(kite, 0, 0);
-    
     image(yell, 10, 0);
     image(blu, -10, 0);
     image(yell2, 10, 0);
     image(blu2, -10, 0);
-    image(original, 0, 0);
-    
+    image(pixelate, 0, 0);
 }
 
+//Video Filter: transparency in light areas, blue tint in mid, red tint in dark
 function screen(img, shade) {
     img.loadPixels();
         for (var y = 0; y < img.height; y++) {
@@ -131,6 +132,8 @@ function screen(img, shade) {
       }
       img.updatePixels(); 
 }
+//white noise: causes stars to sparkle and bright areas to create "noise" via random number
+//code is set up so that it's not too quick and noisey -- so that stars will twinkle
 let starsloc = [];
 function wnoise(img) {
     img.loadPixels();
@@ -155,7 +158,8 @@ function wnoise(img) {
       img.updatePixels();
 }
 
-//mask
+//Mask Filter: for removing dark areas of images
+//Future: can add another parameter in tandem with color picker; so user can pick color they want to mask
 function block(img) {
     img.loadPixels();
         for (var y = 0; y < img.height; y++) {
@@ -174,6 +178,9 @@ function block(img) {
       }
       img.updatePixels();
 }
+
+//Motion effect utilizing box blur with greater movement/directional blur on Y axis
+//removed blurring of red channel (aka red channel stays while the rest o fthe image is blurred) giving a color split effect
 function motion(img){
     img.loadPixels();
         for (var y = 0; y < img.height; y++) {
@@ -183,16 +190,12 @@ function motion(img){
       }
     img.updatePixels();
 }
-//modified box blur code from class\
-function getIndex (x, y) {
-  return (x + y * width)*4;
-}
+//modified box blur code from class
 function motionBlur(img, x, y) {
     let avgG = 0;
     let avgB = 0;
   
     let pixelsSeen = 0;
-    // Go through each neighborly pixel.
     for (let dx = -1; dx < 2; dx++) {
         for (let dy = -1; dy < 20; dy++) {
         let index = getIndex(x + dx, y + dy);
@@ -218,6 +221,8 @@ function motionBlur(img, x, y) {
     img.pixels[trueIndex + 1] = avgG;
     img.pixels[trueIndex + 2] = avgB;
 }
+
+//stamp filter: involves creation of 2 duplicate images. Takes away dark shades and colorizes brighter shades into a more transparent duplicate
 function stamp(img, yell, blu) {
     yell.loadPixels();
     blu.loadPixels();
@@ -254,8 +259,8 @@ function stamp(img, yell, blu) {
     blu.updatePixels();
 }
 
+//enhance bibrancy of bird (select RGB values as condition - to make it smoother / no jaggedness in color correction)
 function rainbow(img) {
-    
     img.loadPixels();
         for (var y = 0; y < img.height; y++) {
             for (var x = 0; x < img.width; x++) {
@@ -276,8 +281,10 @@ function rainbow(img) {
       }
     img.updatePixels();
 }
+
+//Mouse interaction: pixelation (average all rs gs and bs in an area and apply that color to all pixels in area)
 function mouseDragged () {
-    original.loadPixels();
+    pixelate.loadPixels();
     loadPixels();
     let allr = 0;
     let allg = 0;
@@ -285,7 +292,7 @@ function mouseDragged () {
     let count = 0;
    for (var y = mouseY - 25; y < mouseY + 25; y++) {
             for (var x = mouseX - 25; x < mouseX + 25; x++) {
-                var index = (x + y * original.width)*4;
+                var index = (x + y * pixelate.width)*4;
         
                 let r = pixels[index+0];
                 let g = pixels[index+1];
@@ -305,14 +312,42 @@ function mouseDragged () {
                        for (var y = mouseY - 25; y < mouseY + 25; y++) {
                         for (var x = mouseX - 25; x < mouseX + 25; x++) {
                             let c = color(r,g,b,a);
-                            original.set(x, y, c);
+                            pixelate.set(x, y, c);
                         }
                        }
                 }
         }
       }
   
-    original.updatePixels();
+    pixelate.updatePixels();
 }
+function getIndex (x, y) {
+  return (x + y * width)*4;
+}
+
+//played around with showing original image on key press (realized I applied filters in setup)
+//function keyPressed() {
+//    show = true;
+//}
+//function keyReleased() {
+//    show = false;
+//}
+//function showOriginal(img) {
+//    img.loadPixels();
+//    loadPixels();
+//        for (var y = 0; y < img.height; y++) {
+//            for (var x = 0; x < img.width; x++) {
+//                var index = (x + y * img.width)*4;
+//        
+//                let r = pixels[index+0];
+//                let g = pixels[index+1];
+//                let b = pixels[index+2]; 
+//                let a = pixels[index+3];  
+//                let c = color(r,g,b,a);
+//                img.set(x, y, c);
+//        }
+//      }
+//    img.updatePixels();
+//}
 
 
